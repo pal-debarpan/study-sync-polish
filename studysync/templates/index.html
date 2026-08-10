@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}
+Home - StudySync
+{% endblock %}
+
+{% block content %}
+
+<div class="page-container">
+
+    <section class="hero">
+
+        <span class="hero-badge">
+            🚀 Your Personal Study Companion
+        </span>
+
+        <h1>
+
+            Study Smarter.<br>
+            Stay Organized.<br>
+            Achieve More.
+
+        </h1>
+
+        <p>
+
+            Notes, Assignments, Pomodoro Focus Sessions,
+            Analytics and Progress Tracking —
+            all in one beautiful workspace.
+
+        </p>
+
+        <div class="hero-buttons">
+
+            <a href="{{ url_for('signup') }}" class="btn">
+
+                Get Started →
+
+            </a>
+
+            <a href="#features" class="btn secondary">
+
+                Learn More
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <section class="features">
+        <h2>Why Choose StudySync</h2>
+        <br><br>
+        <div class="cards">
+            <div class="card">
+                            
+                <h3><i class="fa-solid fa-book"></i> Subjects</h3>
+                <p>Organise all your study subjects in one place.</p>
+            </div>
+
+            <div class="card">
+                            
+                <h3><i class="fa-solid fa-list-check"></i> Tasks</h3>
+                <p>Track assignments and never miss deadlines.</p>
+            </div>
+
+            <div class="card">
+                            
+                <h3><i class="fa-solid fa-clock"></i> Pomodoro</h3>
+                <p>Stay focused with a built-in Pomodoro timer.</p>
+            </div>
+
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}
