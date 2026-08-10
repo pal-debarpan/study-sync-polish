@@ -1,46 +1,8 @@
-# StudySync Polish
+# StudySync
 
-I have an existing Flask web application called "StudySync".
+StudySync uses a Flask backend with a local SQLite database (`studysync/database.db`). The React frontend calls the Flask JSON API at `/api`; it no longer connects to Supabase.
 
-IMPORTANT: I ONLY want frontend/UI/UX improvements.
-
-DO NOT change, rewrite, remove, or interfere with ANY backend functionality.
-
-BACKEND MUST REMAIN COMPLETELY UNTOUCHED:
-
-- Do not change Flask/Python files.
-
-- Do not change routes.
-
-- Do not change route names or endpoints.
-
-- Do not change Flask logic.
-
-- Do not change session handling.
-
-- Do not change authentication/login/signup logic.
-
-- Do not change SQLite/database logic.
-
-- Do not change database tables, queries, or schema.
-
-- Do not change CRUD functionality.
-
-- Do not change form methods or form actions.
-
-- Do not change Jinja2 variables.
-
-- Do not change Jinja2 conditions/loops.
-
-- Do not change url_for() calls.
-
-- Do not change API behavior.
-
-- Do not replace SQLite.
-
-- Do not introduce a new backend or framework.
-
-The existing application already works. Your job is ONLY to make the frontend visually consistent, polished, modern, and responsive.
+For local development, start Flask from `studysync` (`python database.py` once, then `python app.py`) and run the React dev server from the repository root. Vite proxies `/api` to Flask on port 5000.
 
 ==================================================
 

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { NotebookPen, ListChecks, Timer, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,15 +30,11 @@ function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
-      const [profile, notes, assignments] = await Promise.all([
-        supabase.from("profiles").select("full_name").maybeSingle(),
-        supabase.from("notes").select("id,title").order("created_at", { ascending: false }).limit(5),
-        supabase.from("assignments").select("*").order("due_date"),
-      ]);
+      const [profile, notes, assignments] = await Promise.all([api.me(), api.notes(), api.assignments()]);
       return {
-        name: profile.data?.full_name || "there",
-        notes: notes.data ?? [],
-        assignments: assignments.data ?? [],
+        name: profile.user.full_name || "there",
+        notes: notes.slice(0, 5),
+        assignments,
       };
     },
   });

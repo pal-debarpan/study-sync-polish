@@ -1,7 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { BookOpen, LayoutDashboard, NotebookPen, ListChecks, Timer, LogOut, Moon, Sun, Menu } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await api.logout();
     router.navigate({ to: "/auth" });
   };
 

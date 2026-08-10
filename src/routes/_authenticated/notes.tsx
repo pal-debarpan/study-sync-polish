@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Trash2, Pencil, Plus, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,9 +31,7 @@ function NotesPage() {
   const { data: notes, isLoading } = useQuery({
     queryKey: ["notes"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("notes").select("*").order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      return api.notes();
     },
   });
 
@@ -46,12 +44,9 @@ function NotesPage() {
   const save = useMutation({
     mutationFn: async () => {
       if (editing) {
-        const { error } = await supabase.from("notes").update({ title, content }).eq("id", editing);
-        if (error) throw error;
+        await api.updateNote(editing, title, content);
       } else {
-        const { data: auth } = await supabase.auth.getUser();
-        const { error } = await supabase.from("notes").insert({ title, content, user_id: auth.user!.id });
-        if (error) throw error;
+        await api.createNote(title, content);
       }
     },
     onSuccess: () => {
@@ -64,8 +59,7 @@ function NotesPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("notes").delete().eq("id", id);
-      if (error) throw error;
+      await api.deleteNote(id);
     },
     onSuccess: () => {
       toast.success("Note deleted");

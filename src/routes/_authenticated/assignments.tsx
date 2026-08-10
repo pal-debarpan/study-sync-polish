@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Trash2, Plus, Timer } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,9 +33,7 @@ function AssignmentsPage() {
   const { data: assignments, isLoading } = useQuery({
     queryKey: ["assignments"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("assignments").select("*").order("due_date");
-      if (error) throw error;
-      return data;
+      return api.assignments();
     },
   });
 
@@ -46,11 +44,7 @@ function AssignmentsPage() {
 
   const add = useMutation({
     mutationFn: async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      const { error } = await supabase
-        .from("assignments")
-        .insert({ title, subject, due_date: dueDate, status: "Pending", user_id: auth.user!.id });
-      if (error) throw error;
+      await api.createAssignment(title, subject, dueDate);
     },
     onSuccess: () => {
       toast.success("Assignment added");
@@ -64,19 +58,14 @@ function AssignmentsPage() {
 
   const toggle = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
-        .from("assignments")
-        .update({ status: status === "Completed" ? "Pending" : "Completed" })
-        .eq("id", id);
-      if (error) throw error;
+      await api.updateAssignment(id, { status: status === "Completed" ? "Pending" : "Completed" });
     },
     onSuccess: invalidate,
   });
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("assignments").delete().eq("id", id);
-      if (error) throw error;
+      await api.deleteAssignment(id);
     },
     onSuccess: () => {
       toast.success("Assignment deleted");

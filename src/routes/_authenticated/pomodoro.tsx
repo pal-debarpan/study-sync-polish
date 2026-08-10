@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -41,9 +41,7 @@ function PomodoroPage() {
   const { data: assignments } = useQuery({
     queryKey: ["assignments"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("assignments").select("*").order("due_date");
-      if (error) throw error;
-      return data;
+      return api.assignments();
     },
   });
 
@@ -66,11 +64,7 @@ function PomodoroPage() {
     setSecondsLeft(FOCUS_SECONDS);
     toast.success("Session complete — take a break!");
     if (!selectedId || !selected) return;
-    void supabase
-      .from("assignments")
-      .update({ pomodoros_completed: (selected.pomodoros_completed ?? 0) + 1 })
-      .eq("id", selectedId)
-      .then(() => {
+    void api.updateAssignment(selectedId, { pomodoros_completed: (selected.pomodoros_completed ?? 0) + 1 }).then(() => {
         qc.invalidateQueries({ queryKey: ["assignments"] });
         qc.invalidateQueries({ queryKey: ["dashboard"] });
       });
