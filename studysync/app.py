@@ -2,9 +2,222 @@ from flask import Flask, render_template, request, redirect, session, jsonify, f
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date
+from pathlib import Path
+import os
+
+# Always use the database next to this Flask application. Without this, Flask
+# creates a new empty database whenever it is launched from another directory.
+APP_DIR = Path(__file__).resolve().parent
+DATABASE_PATH = APP_DIR / "database.db"
+os.chdir(APP_DIR)
 
 app = Flask(__name__)
 app.secret_key = "study_sync_secret"
+
+
+def init_database():
+    """Create the SQLite schema on first startup."""
+    conn = sqlite3.connect(DATABASE_PATH)
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fullname TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            last_login TEXT
+        );
+        CREATE TABLE IF NOT EXISTS notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+        CREATE TABLE IF NOT EXISTS assignments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            title TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            due_date TEXT NOT NULL,
+            status TEXT NOT NULL,
+            pomodoros_completed INTEGER DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+    """)
+    conn.commit()
+    conn.close()
+
+
+init_database()
+
+
+# JSON API used by the React client.  The original HTML routes below are kept
+# intact so the Flask application can still be used on its own.
+def api_error(message, status=400):
+    return jsonify({"error": message}), status
+
+
+def api_user():
+    if not session.get("logged_in"):
+        return None
+
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    user = conn.execute(
+        "SELECT id, fullname, email FROM users WHERE email = ?", (session["email"],)
+    ).fetchone()
+    conn.close()
+    return user
+
+
+def api_assignment(row):
+    return {
+        "id": str(row["id"]),
+        "title": row["title"],
+        "subject": row["subject"],
+        "due_date": row["due_date"],
+        "status": row["status"],
+        "pomodoros_completed": row["pomodoros_completed"] or 0,
+    }
+
+
+@app.route("/api/auth/signup", methods=["POST"])
+def api_signup():
+    data = request.get_json(silent=True) or {}
+    fullname, email, password = data.get("full_name", "").strip(), data.get("email", "").strip().lower(), data.get("password", "")
+    if not fullname or not email or len(password) < 6:
+        return api_error("Full name, email, and a password of at least 6 characters are required.")
+    conn = sqlite3.connect("database.db")
+    try:
+        conn.execute("INSERT INTO users(fullname, email, password) VALUES(?, ?, ?)", (fullname, email, generate_password_hash(password)))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        return api_error("An account with that email already exists.", 409)
+    finally:
+        conn.close()
+    return jsonify({"success": True}), 201
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def api_login():
+    data = request.get_json(silent=True) or {}
+    email, password = data.get("email", "").strip().lower(), data.get("password", "")
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    conn.close()
+    if user is None or not check_password_hash(user["password"], password):
+        return api_error("Invalid email or password.", 401)
+    session["logged_in"] = True
+    session["email"] = user["email"]
+    return jsonify({"user": {"id": str(user["id"]), "full_name": user["fullname"], "email": user["email"]}})
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+def api_logout():
+    session.clear()
+    return jsonify({"success": True})
+
+
+@app.route("/api/auth/me")
+def api_me():
+    user = api_user()
+    if user is None:
+        return api_error("Not authenticated.", 401)
+    return jsonify({"user": {"id": str(user["id"]), "full_name": user["fullname"], "email": user["email"]}})
+
+
+@app.route("/api/notes", methods=["GET", "POST"])
+def api_notes():
+    user = api_user()
+    if user is None:
+        return api_error("Not authenticated.", 401)
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        title, content = data.get("title", "").strip(), data.get("content", "").strip()
+        if not title or not content:
+            conn.close()
+            return api_error("Title and content are required.")
+        cursor = conn.execute("INSERT INTO notes(user_id, title, content) VALUES(?, ?, ?)", (user["id"], title, content))
+        conn.commit()
+        note = conn.execute("SELECT id, title, content FROM notes WHERE id = ?", (cursor.lastrowid,)).fetchone()
+        conn.close()
+        return jsonify({"id": str(note["id"]), "title": note["title"], "content": note["content"]}), 201
+    notes = conn.execute("SELECT id, title, content FROM notes WHERE user_id = ? ORDER BY id DESC", (user["id"],)).fetchall()
+    conn.close()
+    return jsonify([{"id": str(note["id"]), "title": note["title"], "content": note["content"]} for note in notes])
+
+
+@app.route("/api/notes/<int:note_id>", methods=["PUT", "DELETE"])
+def api_note(note_id):
+    user = api_user()
+    if user is None:
+        return api_error("Not authenticated.", 401)
+    conn = sqlite3.connect("database.db")
+    if request.method == "PUT":
+        data = request.get_json(silent=True) or {}
+        title, content = data.get("title", "").strip(), data.get("content", "").strip()
+        if not title or not content:
+            conn.close()
+            return api_error("Title and content are required.")
+        cursor = conn.execute("UPDATE notes SET title = ?, content = ? WHERE id = ? AND user_id = ?", (title, content, note_id, user["id"]))
+    else:
+        cursor = conn.execute("DELETE FROM notes WHERE id = ? AND user_id = ?", (note_id, user["id"]))
+    conn.commit()
+    conn.close()
+    if not cursor.rowcount:
+        return api_error("Note not found.", 404)
+    return jsonify({"success": True})
+
+
+@app.route("/api/assignments", methods=["GET", "POST"])
+def api_assignments():
+    user = api_user()
+    if user is None:
+        return api_error("Not authenticated.", 401)
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        title, subject, due_date = data.get("title", "").strip(), data.get("subject", "").strip(), data.get("due_date", "")
+        if not title or not subject or not due_date:
+            conn.close()
+            return api_error("Title, subject, and due date are required.")
+        cursor = conn.execute("INSERT INTO assignments(user_id, title, subject, due_date, status, pomodoros_completed) VALUES(?, ?, ?, ?, 'Pending', 0)", (user["id"], title, subject, due_date))
+        conn.commit()
+        assignment = conn.execute("SELECT * FROM assignments WHERE id = ?", (cursor.lastrowid,)).fetchone()
+        conn.close()
+        return jsonify(api_assignment(assignment)), 201
+    assignments = conn.execute("SELECT * FROM assignments WHERE user_id = ? ORDER BY due_date", (user["id"],)).fetchall()
+    conn.close()
+    return jsonify([api_assignment(assignment) for assignment in assignments])
+
+
+@app.route("/api/assignments/<int:assignment_id>", methods=["PATCH", "DELETE"])
+def api_assignment_by_id(assignment_id):
+    user = api_user()
+    if user is None:
+        return api_error("Not authenticated.", 401)
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    if request.method == "DELETE":
+        cursor = conn.execute("DELETE FROM assignments WHERE id = ? AND user_id = ?", (assignment_id, user["id"]))
+    else:
+        data = request.get_json(silent=True) or {}
+        assignment = conn.execute("SELECT * FROM assignments WHERE id = ? AND user_id = ?", (assignment_id, user["id"])).fetchone()
+        if assignment is None:
+            conn.close()
+            return api_error("Assignment not found.", 404)
+        status = data.get("status", assignment["status"])
+        pomodoros = data.get("pomodoros_completed", assignment["pomodoros_completed"])
+        cursor = conn.execute("UPDATE assignments SET status = ?, pomodoros_completed = ? WHERE id = ? AND user_id = ?", (status, pomodoros, assignment_id, user["id"]))
+    conn.commit()
+    conn.close()
+    if not cursor.rowcount:
+        return api_error("Assignment not found.", 404)
+    return jsonify({"success": True})
 
 @app.route('/')
 def home():

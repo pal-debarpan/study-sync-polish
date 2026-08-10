@@ -938,26 +938,39 @@ body.dark-mode .badge.completed { color: #4ADE80; }
     display: grid;
     gap: var(--gap);
     grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
-    align-items: start;
+    align-items: stretch;
 }
 
 .timer-card {
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     text-align: center;
     padding: clamp(26px, 4vw, 40px);
     background:
-        radial-gradient(circle at 50% -20%, rgba(139, 92, 246, .16), transparent 62%),
+        linear-gradient(135deg, rgba(139, 92, 246, .12), rgba(59, 130, 246, .10)),
         var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.timer-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(139, 92, 246, .28);
 }
 
 .timer-card h2 {
-    font-size: 1.15rem;
+    font-size: clamp(1.35rem, 2.4vw, 1.9rem);
     margin-bottom: 6px;
 }
 
 .timer-card .session-label {
-    font-size: 14.5px;
+    font-size: 1rem;
     margin-bottom: 22px;
 }
 
@@ -977,6 +990,7 @@ body.dark-mode .badge.completed { color: #4ADE80; }
     fill: none;
     stroke: var(--surface);
     stroke-width: 14;
+    border-radius: 10px;
 }
 
 .timer-progress {

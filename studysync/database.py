@@ -1,5 +1,7 @@
 import sqlite3
-conn = sqlite3.connect("database.db")
+from pathlib import Path
+
+conn = sqlite3.connect(Path(__file__).resolve().parent / "database.db")
 cursor = conn.cursor()
 
 cursor.execute("""
