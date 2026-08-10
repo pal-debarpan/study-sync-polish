@@ -136,7 +136,7 @@ function AssignmentsPage() {
                     </p>
                     <div className="mt-2 flex items-center gap-2">
                       <Progress value={progress} className="h-2 max-w-48" />
-                      <span className="text-xs text-muted-foreground">{a.pomodoros_completed ?? 0}/10 🍅</span>
+                      <span className="text-xs text-muted-foreground">{a.pomodoros_completed ?? 0}/10 focus sessions</span>
                     </div>
                   </div>
                   <Badge variant={a.status === "Completed" ? "default" : "secondary"}>{a.status}</Badge>

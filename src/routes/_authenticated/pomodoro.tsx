@@ -64,7 +64,7 @@ function PomodoroPage() {
     if (secondsLeft !== 0) return;
     setRunning(false);
     setSecondsLeft(FOCUS_SECONDS);
-    toast.success("Session complete — take a break! 🍅");
+    toast.success("Session complete — take a break!");
     if (!selectedId || !selected) return;
     void supabase
       .from("assignments")
