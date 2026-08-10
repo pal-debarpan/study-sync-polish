@@ -6,16 +6,19 @@ StudySync-Edit Note
 
 {% block content %}
 
-<section class="hero">
-    <h1>Edit Notes</h1>
-    <p>Add something you forgot.</p>
+<div class="page-container">
 
-    <form method="POST">
+    <div class="page-header">
+        <h1>Edit Notes</h1>
+        <p>Add something you forgot.</p>
+    </div>
+
+    <form method="POST" class="page-form">
         <input type="text" name="title" value="{{ note[2] }}" placeholder="Title" required>
         <textarea name="content" placeholder="Write your notes here..." required>{{ note[3] }}</textarea>
         <button class="btn">Save Changes</button>
     </form>
 
-</section>
+</div>
 
 {% endblock %}

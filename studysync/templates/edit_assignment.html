@@ -6,17 +6,20 @@ StudySync-Edit Assignment
 
 {% block content %}
 
-<section class="hero">
-    <h1>Edit Assignment</h1>
-    <p>Update your assignment details.</p>
+<div class="page-container">
 
-    <form method="POST">
+    <div class="page-header">
+        <h1>Edit Assignment</h1>
+        <p>Update your assignment details.</p>
+    </div>
+
+    <form method="POST" class="page-form two-col">
         <input type="text" name="title" value="{{ assignment[2] }}" placeholder="Title" required>
         <input type="text" name="subject" value="{{ assignment[3] }}" placeholder="Subject" required>
         <input type="date" name="due_date" value="{{ assignment[4] }}" required>
         <button class="btn">Save Changes</button>
     </form>
 
-</section>
+</div>
 
 {% endblock %}

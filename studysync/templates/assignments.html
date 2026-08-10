@@ -6,103 +6,110 @@ StudySync-Assignments
 
 {% block content %}
 
-<section class="hero">
-    <div class="page-container">
+<div class="page-container">
+
+    <div class="page-header">
         <h1>My Assignments</h1>
         <p>Keep track of your assignments.</p>
+    </div>
 
-        <form method="POST" class="page-form">
+    <form method="POST" class="page-form two-col">
 
-            <input type="text" name="title" placeholder="Title" required>
-            <input type="text" name="subject" placeholder="Subject" required>
-            <input type="date" name="due_date" required>
+        <input type="text" name="title" placeholder="Title" required>
+        <input type="text" name="subject" placeholder="Subject" required>
+        <input type="date" name="due_date" required>
 
-            <button class="btn">Add Assignment</button>
+        <button class="btn">Add Assignment</button>
 
-        </form>
+    </form>
 
-        <hr>
+    <h2 class="section-title">Your Assignments</h2>
 
-        <h2>Your Assignments</h2>
+    {% if assignments %}
 
-        {% if assignments %}
+        {% for assignment in assignments %}
 
-            {% for assignment in assignments %}
+        <div class="page-card">
 
-            <div class="page-card">
+            <div class="card-head">
 
                 <h3>{{ assignment[2] }}</h3>
+
+                {% if assignment[5] == "Pending" %}
+                    <span class="badge pending">🟡 Pending</span>
+                {% else %}
+                    <span class="badge completed">🟢 Completed</span>
+                {% endif %}
+
+            </div>
+
+            <div class="meta-list">
 
                 <p>📚 <strong>Subject:</strong> {{ assignment[3] }}</p>
 
                 <p>📅 <strong>Due:</strong> {{ assignment[4] }}</p>
 
-                <p>
+            </div>
+
+            <p><strong>🍅 Progress</strong></p>
+
+            <div class="assignment-progress-bar">
+                <div
+                    class="assignment-progress-fill"
+                    style="width: {{ assignment[7] }}%;">
+                </div>
+            </div>
+
+            {% if assignment[6] == 0 %}
+                <p>🍅 No focus sessions yet</p>
+            {% else %}
+                <p>🍅 {{ assignment[6] }} / 10 Pomodoros</p>
+            {% endif %}
+
+            <div class="assignment-actions">
+
+                <a href="/edit_assignment/{{ assignment[0] }}" class="btn secondary small">
+                    ✏ Edit
+                </a>
+
+                <form method="POST" action="/delete_assignment/{{ assignment[0] }}">
+                    <button class="btn danger small">
+                        🗑 Delete
+                    </button>
+                </form>
+
+                <form action="/toggle_assignment/{{ assignment[0] }}" method="POST">
+
                     {% if assignment[5] == "Pending" %}
-                        🟡 <strong>Pending</strong>
-                    {% else %}
-                        🟢 <strong>Completed</strong>
-                    {% endif %}
-                </p>
-
-                <p><strong>🍅 Progress</strong></p>
-
-                <div class="assignment-progress-bar">
-                    <div
-                        class="assignment-progress-fill"
-                        style="width: {{ assignment[7] }}%;">
-                    </div>
-                </div>
-
-                {% if assignment[6] == 0 %}
-                    <p>🍅 No focus sessions yet</p>
-                {% else %}
-                    <p>🍅 {{ assignment[6] }} / 10 Pomodoros</p>
-                {% endif %}
-
-                <div class="assignment-actions">
-
-                    <a href="/edit_assignment/{{ assignment[0] }}" class="btn">
-                        ✏ Edit
-                    </a>
-
-                    <form method="POST" action="/delete_assignment/{{ assignment[0] }}">
-                        <button class="btn">
-                            🗑 Delete
+                        <button class="btn success small">
+                            ✅ Mark Completed
                         </button>
-                    </form>
+                    {% else %}
+                        <button class="btn secondary small">
+                            ↺ Mark Pending
+                        </button>
+                    {% endif %}
 
-                    <form action="/toggle_assignment/{{ assignment[0] }}" method="POST">
+                </form>
 
-                        {% if assignment[5] == "Pending" %}
-                            <button class="btn">
-                                ✅ Mark Completed
-                            </button>
-                        {% else %}
-                            <button class="btn">
-                                ↺ Mark Pending
-                            </button>
-                        {% endif %}
-
-                    </form>
-
-                    <a href="{{ url_for('assignment_pomodoro', assignment_id=assignment[0]) }}" class="btn">
-                        🍅 Focus
-                    </a>
-
-                </div>
+                <a href="{{ url_for('assignment_pomodoro', assignment_id=assignment[0]) }}" class="btn small">
+                    🍅 Focus
+                </a>
 
             </div>
 
-            {% endfor %}
+        </div>
 
-        {% else %}
+        {% endfor %}
 
+    {% else %}
+
+        <div class="empty-state">
             <p>You haven't created any assignments yet.</p>
+        </div>
 
-        {% endif %}
-    </div>
+    {% endif %}
 
-</section>
+</div>
 
 {% endblock %}
