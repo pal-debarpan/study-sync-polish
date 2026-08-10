@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}
+Login - StudySync
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-wrap">
+
+    <div class="auth-container">
+
+        <div class="auth-head">
+            <h1>Welcome Back!</h1>
+            <p>Login to continue your study journey.</p>
+        </div>
+
+        <div class="auth-card">
+            <form method="POST">
+
+                <div>
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="email" placeholder="Enter your email" required>
+                </div>
+
+                <div>
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" placeholder="Enter your password" required>
+                </div>
+
+                <button class="btn">Login</button>
+            </form>
+        </div>
+
+        {% if email %}
+        <h2>Welcome, {{ email }}!</h2>
+        {% endif %}
+
+        <p class="auth-alt">
+            New to StudySync?
+            <a href="{{ url_for('signup') }}">Create an account</a>
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}
