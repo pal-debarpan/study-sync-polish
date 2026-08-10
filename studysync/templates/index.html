@@ -6,73 +6,77 @@ Home - StudySync
 
 {% block content %}
 
-<div class="page-container">
+<section class="hero">
 
-    <section class="hero">
+    <span class="hero-badge">
+        🚀 Your Personal Study Companion
+    </span>
 
-        <span class="hero-badge">
-            🚀 Your Personal Study Companion
-        </span>
+    <h1>
 
-        <h1>
+        Study Smarter.<br>
+        Stay Organized.<br>
+        Achieve More.
 
-            Study Smarter.<br>
-            Stay Organized.<br>
-            Achieve More.
+    </h1>
 
-        </h1>
+    <p>
 
-        <p>
+        Notes, Assignments, Pomodoro Focus Sessions,
+        Analytics and Progress Tracking —
+        all in one beautiful workspace.
 
-            Notes, Assignments, Pomodoro Focus Sessions,
-            Analytics and Progress Tracking —
-            all in one beautiful workspace.
+    </p>
 
-        </p>
+    <div class="hero-buttons">
 
-        <div class="hero-buttons">
+        <a href="{{ url_for('signup') }}" class="btn">
 
-            <a href="{{ url_for('signup') }}" class="btn">
+            Get Started →
 
-                Get Started →
+        </a>
 
-            </a>
+        <a href="#features" class="btn secondary">
 
-            <a href="#features" class="btn secondary">
+            Learn More
 
-                Learn More
+        </a>
 
-            </a>
+    </div>
+
+</section>
+
+<section class="features" id="features">
+
+    <h2>Why Choose StudySync</h2>
+
+    <p>Everything you need to plan, focus and track your study progress.</p>
+
+    <div class="cards">
+
+        <div class="card">
+
+            <h3><i class="fa-solid fa-book"></i> Subjects</h3>
+            <p>Organise all your study subjects in one place.</p>
+
+        </div>
+
+        <div class="card">
+
+            <h3><i class="fa-solid fa-list-check"></i> Tasks</h3>
+            <p>Track assignments and never miss deadlines.</p>
 
         </div>
 
-    </section>
+        <div class="card">
 
-    <section class="features">
-        <h2>Why Choose StudySync</h2>
-        <br><br>
-        <div class="cards">
-            <div class="card">
-                            
-                <h3><i class="fa-solid fa-book"></i> Subjects</h3>
-                <p>Organise all your study subjects in one place.</p>
-            </div>
-
-            <div class="card">
-                            
-                <h3><i class="fa-solid fa-list-check"></i> Tasks</h3>
-                <p>Track assignments and never miss deadlines.</p>
-            </div>
-
-            <div class="card">
-                            
-                <h3><i class="fa-solid fa-clock"></i> Pomodoro</h3>
-                <p>Stay focused with a built-in Pomodoro timer.</p>
-            </div>
+            <h3><i class="fa-solid fa-clock"></i> Pomodoro</h3>
+            <p>Stay focused with a built-in Pomodoro timer.</p>
 
         </div>
-    </section>
 
-</div>
+    </div>
+
+</section>
 
 {% endblock %}
