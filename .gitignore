@@ -14,8 +14,20 @@ dist-ssr
 .vinxi
 .tanstack/**
 .nitro
+# Environment files can contain credentials. Commit only the documented example.
+.env
+.env.*
+!.env.example
 *.local
 studysync/database.db
+
+# Private keys, certificates, and common credential exports
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json
 
 # Wrangler / Cloudflare
 .wrangler/
