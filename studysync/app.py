@@ -1,18 +1,40 @@
 from flask import Flask, render_template, request, redirect, session, jsonify, flash, url_for
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from pathlib import Path
 import os
+import secrets
+from dotenv import load_dotenv
 
 # Always use the database next to this Flask application. Without this, Flask
 # creates a new empty database whenever it is launched from another directory.
 APP_DIR = Path(__file__).resolve().parent
 DATABASE_PATH = APP_DIR / "database.db"
+# Load a local, gitignored file for development. In production, configure the
+# same values in the host's secret/environment-variable manager instead.
+load_dotenv(APP_DIR / ".env")
 os.chdir(APP_DIR)
 
 app = Flask(__name__)
-app.secret_key = "study_sync_secret"
+
+is_production = os.getenv("APP_ENV", "development").lower() == "production"
+secret_key = os.getenv("SECRET_KEY")
+if not secret_key:
+    if is_production:
+        raise RuntimeError("SECRET_KEY must be set when APP_ENV=production.")
+    # Do not retain a development fallback in source control. This intentionally
+    # changes on restart, invalidating development sessions rather than using a
+    # predictable key.
+    secret_key = secrets.token_urlsafe(64)
+
+app.config.update(
+    SECRET_KEY=secret_key,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=is_production,
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
+)
 
 
 def init_database():
@@ -108,6 +130,7 @@ def api_login():
     conn.close()
     if user is None or not check_password_hash(user["password"], password):
         return api_error("Invalid email or password.", 401)
+    session.permanent = True
     session["logged_in"] = True
     session["email"] = user["email"]
     return jsonify({"user": {"id": str(user["id"]), "full_name": user["fullname"], "email": user["email"]}})
@@ -886,4 +909,4 @@ def profile():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.getenv("FLASK_DEBUG", "0") == "1")

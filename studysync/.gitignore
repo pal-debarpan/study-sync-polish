@@ -2,4 +2,16 @@ database.db
 __pycache__/
 *.pyc
 venv/
+# Keep every environment variant out of source control. `.env.example` contains
+# names and guidance only, never values.
 .env
+.env.*
+!.env.example
+
+# Secrets and certificate material
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+service-account*.json

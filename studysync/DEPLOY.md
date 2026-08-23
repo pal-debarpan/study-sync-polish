@@ -15,7 +15,11 @@ hosting glue.
    - Root Directory: `studysync` (leave blank if studysync is the repo root)
    - Build Command: `pip install -r requirements.txt`
    - Start Command: `python database.py && gunicorn app:app --bind 0.0.0.0:$PORT`
-4. Add an environment variable `PYTHON_VERSION` = `3.12.6` if needed.
+4. Add these environment variables in Render's **Environment** settings (do not
+   commit them to the repository):
+   - `APP_ENV=production`
+   - `SECRET_KEY=<a unique, random value of at least 32 bytes>`
+   - `PYTHON_VERSION=3.12.6` if needed.
 5. Deploy. Your app is live at `https://<name>.onrender.com`.
 
 ## Railway / Fly.io
@@ -30,8 +34,9 @@ in a Bash console to create `database.db`.
 - **SQLite is ephemeral on Render/Railway free tiers** — the disk resets on each
   deploy or restart, so users/notes will be wiped. For persistent data attach a
   disk (Render) or a volume (Fly), or switch to Postgres later.
-- Set a real secret key in production. Today it is hardcoded in `app.py`
-  (`app.secret_key = "study_sync_secret"`). Changing that is a backend edit, so
-  it has been left alone — do it yourself when you go live for real.
-- `debug=True` in `app.py` only applies when running `python app.py` locally;
-  gunicorn ignores it, so production is safe.
+- `SECRET_KEY` is required when `APP_ENV=production`; the application refuses
+  to start without it. Generate it with `python -c "import secrets; print(secrets.token_urlsafe(64))"`
+  and store it only in your hosting provider's secret manager. The old
+  hardcoded key was present in Git history, so do not reuse it.
+- Debug mode is disabled by default. Set `FLASK_DEBUG=1` only for local work;
+  Gunicorn does not enable it automatically.
